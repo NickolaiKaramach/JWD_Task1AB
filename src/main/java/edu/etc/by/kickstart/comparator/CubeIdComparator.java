@@ -21,6 +21,7 @@ public class CubeIdComparator implements Comparator<Cube> {
         if (firstCubeId == secondCubeId) {
             return 0;
         }
+
         if (firstCubeId > secondCubeId) {
             return POSITIVE_NUM;
         } else {

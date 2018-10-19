@@ -20,6 +20,7 @@ public class CubeVolumeComparator implements Comparator<Cube> {
         if (firstCubeVolume == secondCubeVolume) {
             return 0;
         }
+
         if (firstCubeVolume > secondCubeVolume) {
             return POSITIVE_NUM;
         } else {

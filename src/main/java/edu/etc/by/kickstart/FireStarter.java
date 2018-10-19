@@ -41,7 +41,7 @@ public class FireStarter {
         }
 
         repository.add(cubes);
-        storage.add(cubeData);
+        //storage.add(cubeData);
 
         System.out.println(cubeData + "\n" + cubes);
 

@@ -20,6 +20,7 @@ public class CubeAreaComparator implements Comparator<Cube> {
         if (firstCubeArea == secondCubeArea) {
             return 0;
         }
+
         if (firstCubeArea > secondCubeArea) {
             return POSITIVE_NUM;
         } else {

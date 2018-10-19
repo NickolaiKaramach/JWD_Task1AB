@@ -23,7 +23,6 @@ public class CubeRepository implements FigureRepository<Cube> {
 
     public static CubeRepository getInstance() {
         if (instance == null) {
-            //TODO: Multi-thread problem there!
             instance = new CubeRepository();
         }
         return instance;
@@ -31,12 +30,15 @@ public class CubeRepository implements FigureRepository<Cube> {
 
     @Override
     public void add(Cube item) {
+        CubeStorage.getInstance().add(item.getCubeData());
         items.add(item);
     }
 
     @Override
     public void add(Iterable<Cube> cubeIterable) {
+        CubeStorage storage = CubeStorage.getInstance();
         for (Cube currentCube : cubeIterable) {
+            storage.add(currentCube.getCubeData());
             items.add(currentCube);
         }
     }
@@ -61,54 +63,68 @@ public class CubeRepository implements FigureRepository<Cube> {
     @Override
     public void remove(Specification specification) {
         //TODO: is it a stable code?
-        if (specification.getClass().equals(CubeIdSpecification.class)) {
+        CubeStorage storage = CubeStorage.getInstance();
+        if (isCubeIdSpec(specification)) {
 
             CubeIdSpecification idSpecification;
             idSpecification = (CubeIdSpecification) specification;
 
             int i = 0;
             while (i < items.size()) {
+
                 Cube currentCube = items.get(i);
+
                 if (idSpecification.haveEqualId(currentCube.getId())) {
                     items.remove(i);
-                    CubeStorage.getInstance().remove(currentCube.getCubeData());
+                    storage.remove(currentCube.getCubeData());
                     i--;
                 }
+
                 i++;
             }
-        } else if (specification.getClass().equals(CubeAreaInRangeSpecification.class)) {
+        } else if (isCubeAreaInRangeSpec(specification)) {
 
             CubeAreaInRangeSpecification areaInRangeSpecification;
             areaInRangeSpecification = (CubeAreaInRangeSpecification) specification;
 
             int i = 0;
             while (i < items.size()) {
+
                 Cube currentCube = items.get(i);
                 i++;
+
                 if (areaInRangeSpecification.isInRange(currentCube.getSurfaceArea())) {
                     items.remove(currentCube);
-                    CubeStorage.getInstance().remove(currentCube.getCubeData());
+                    storage.remove(currentCube.getCubeData());
                     i--;
                 }
+
             }
 
-        } else if (specification.getClass().equals(CubeVolumeInRangeSpecification.class)) {
+        } else if (isCubeVolumeInRangeSpec(specification)) {
+
             CubeVolumeInRangeSpecification volumeInRangeSpecification;
             volumeInRangeSpecification = (CubeVolumeInRangeSpecification) specification;
 
             int i = 0;
             while (i < items.size()) {
+
                 Cube currentCube = items.get(i);
 
                 if (volumeInRangeSpecification.isInRange(currentCube.getSurfaceArea())) {
                     items.remove(currentCube);
-                    CubeStorage.getInstance().remove(currentCube.getCubeData());
+                    storage.remove(currentCube.getCubeData());
                     i--;
                 }
+
                 i++;
             }
 
         }
+    }
+
+    private boolean isCubeIdSpec(Specification specification) {
+        return specification.getClass().equals(CubeIdSpecification.class);
     }
 
 
@@ -122,7 +138,7 @@ public class CubeRepository implements FigureRepository<Cube> {
         //TODO: Can we optimize code?
         List<Cube> returningCubeList = new ArrayList<>();
 
-        if (specification.getClass().equals(CubeIdSpecification.class)) {
+        if (isCubeIdSpec(specification)) {
 
             CubeIdSpecification idSpecification;
             idSpecification = (CubeIdSpecification) specification;
@@ -137,7 +153,7 @@ public class CubeRepository implements FigureRepository<Cube> {
 
                 i++;
             }
-        } else if (specification.getClass().equals(CubeAreaInRangeSpecification.class)) {
+        } else if (isCubeAreaInRangeSpec(specification)) {
 
             CubeAreaInRangeSpecification areaInRangeSpecification;
             areaInRangeSpecification = (CubeAreaInRangeSpecification) specification;
@@ -149,10 +165,12 @@ public class CubeRepository implements FigureRepository<Cube> {
                 if (areaInRangeSpecification.isInRange(currentCube.getSurfaceArea())) {
                     returningCubeList.add(currentCube);
                 }
+
                 i++;
             }
 
-        } else if (specification.getClass().equals(CubeVolumeInRangeSpecification.class)) {
+        } else if (isCubeVolumeInRangeSpec(specification)) {
+
             CubeVolumeInRangeSpecification volumeInRangeSpecification;
             volumeInRangeSpecification = (CubeVolumeInRangeSpecification) specification;
 
@@ -168,6 +186,14 @@ public class CubeRepository implements FigureRepository<Cube> {
 
         }
         return returningCubeList;
+    }
+
+    private boolean isCubeAreaInRangeSpec(Specification specification) {
+        return specification.getClass().equals(CubeAreaInRangeSpecification.class);
+    }
+
+    private boolean isCubeVolumeInRangeSpec(Specification specification) {
+        return specification.getClass().equals(CubeVolumeInRangeSpecification.class);
     }
 
     private int findIndexOfCubeById(int id) {

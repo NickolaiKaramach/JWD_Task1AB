@@ -10,6 +10,7 @@ public class CubeAreaInRangeSpecification implements Specification {
     }
 
     public boolean isInRange(double value) {
-        return ((min_range <= value) && (value <= max_range));
+        return ((min_range <= value) &&
+                (value <= max_range));
     }
 }

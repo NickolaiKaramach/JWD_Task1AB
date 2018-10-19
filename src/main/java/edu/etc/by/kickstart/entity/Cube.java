@@ -9,8 +9,8 @@ import java.util.List;
 
 public class Cube implements Supervised, Serializable {
 
-    private static final long serialVersionUID = 51109075226853013L;
-    private List<Watcher> listeners = new ArrayList<>();
+    private static final long serialVersionUID = -7162632042163620279L;
+    transient private List<Watcher> listeners = new ArrayList<>();
     private Square topSquare;
     private Square botSquare;
     private int id;
@@ -19,6 +19,23 @@ public class Cube implements Supervised, Serializable {
         this.id = id;
         this.topSquare = topSquare;
         this.botSquare = botSquare;
+    }
+
+    @Override
+    public void subscribe(Watcher watcher) {
+        listeners.add(watcher);
+    }
+
+    @Override
+    public void unsubscribe(Watcher watcher) {
+        listeners.remove(watcher);
+    }
+
+    @Override
+    public void notifySubscribers() {
+        for (Watcher watcher : listeners) {
+            watcher.update();
+        }
     }
 
     public int getId() {
@@ -65,23 +82,6 @@ public class Cube implements Supervised, Serializable {
             return ((CubeData) listeners.get(0)).getVolume();
         }
         return 0.0;
-    }
-
-    @Override
-    public void subscribe(Watcher watcher) {
-        listeners.add(watcher);
-    }
-
-    @Override
-    public void unsubscribe(Watcher watcher) {
-        listeners.remove(watcher);
-    }
-
-    @Override
-    public void notifySubscribers() {
-        for (Watcher watcher : listeners) {
-            watcher.update();
-        }
     }
 
     @Override

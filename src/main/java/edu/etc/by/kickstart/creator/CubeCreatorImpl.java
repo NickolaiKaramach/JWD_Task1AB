@@ -53,6 +53,7 @@ public class CubeCreatorImpl implements CubeCreator {
         for (int i = 0; i < SQUARE_AMOUNT; i++) {
             Point leftTopCorner = cornersPoints[i * 4];
             Point rightTopCorner = cornersPoints[i * 4 + 1];
+
             Point rightBotCorner = cornersPoints[i * 4 + 2];
             Point leftBotCorner = cornersPoints[i * 4 + 3];
 

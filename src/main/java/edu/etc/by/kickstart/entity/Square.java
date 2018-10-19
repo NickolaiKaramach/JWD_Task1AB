@@ -35,7 +35,8 @@ public class Square implements Serializable {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{ " + this.leftTopCorner + "," + this.rightTopCorner + "," +
+        return getClass().getSimpleName() +
+                "{ " + this.leftTopCorner + "," + this.rightTopCorner + "," +
                 this.rightBotCorner + "," + this.leftBotCorner + " }";
     }
 
@@ -57,7 +58,6 @@ public class Square implements Serializable {
 
     @Override
     public int hashCode() {
-        //TODO: Is it correct to use HashCode() to every obj inside
         int result = 17;
         result = 13 * result + this.leftTopCorner.hashCode() + this.rightTopCorner.hashCode() +
                 this.leftBotCorner.hashCode() + this.rightBotCorner.hashCode();
