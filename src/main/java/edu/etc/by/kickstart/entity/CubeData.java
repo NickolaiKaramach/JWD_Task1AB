@@ -6,34 +6,32 @@ import edu.etc.by.kickstart.observer.Watcher;
 
 import java.io.Serializable;
 
-public class CubeData implements Watcher, Serializable {
+public class CubeData implements Serializable, Watcher {
 
-    private static final long serialVersionUID = -2174955228907297350L;
+    private static final long serialVersionUID = -329834820366083356L;
     private final static CubeActionImpl actions = new CubeActionImpl();
 
     private double volume;
     private double surfaceArea;
 
     //TODO: is it correct?
-    private Cube observable;
+    private int cubeId;
 
     public CubeData(Cube cube) {
-        observable = cube;
-        cube.subscribe(this);
+        cubeId = cube.getId();
         volume = actions.calcVolume(cube);
         surfaceArea = actions.calcSurfaceArea(cube);
+        cube.setCubeDataLink(this);
     }
 
-
-    @Override
-    public void update() {
-        volume = actions.calcVolume(observable);
-        surfaceArea = actions.calcSurfaceArea(observable);
+    public int getCubeId() {
+        return cubeId;
     }
 
-    public Cube getObservable() {
-        return observable;
+    public void setCubeId(int cubeId) {
+        this.cubeId = cubeId;
     }
+
 
     public double getVolume() {
         return volume;
@@ -41,6 +39,16 @@ public class CubeData implements Watcher, Serializable {
 
     public double getSurfaceArea() {
         return surfaceArea;
+    }
+
+    @Override
+    public void update(Object observable) {
+        if (Object.class.equals(Cube.class)) {
+            Cube cube = (Cube) observable;
+            volume = actions.calcVolume(cube);
+            surfaceArea = actions.calcSurfaceArea(cube);
+            cubeId = cube.getId();
+        }
     }
 
     @Override

@@ -10,12 +10,9 @@ public class CubeVolumeComparator implements Comparator<Cube> {
 
     @Override
     public int compare(Cube a, Cube b) {
-        if ((a == null) || (b == null)) {
-            throw new NullPointerException();
-        }
 
-        double firstCubeVolume = a.getVolume();
-        double secondCubeVolume = b.getVolume();
+        double firstCubeVolume = a.getCubeDataLink().getVolume();
+        double secondCubeVolume = b.getCubeDataLink().getVolume();
 
         if (firstCubeVolume == secondCubeVolume) {
             return 0;

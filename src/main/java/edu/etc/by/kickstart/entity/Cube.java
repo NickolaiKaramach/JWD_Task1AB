@@ -1,19 +1,14 @@
 package edu.etc.by.kickstart.entity;
 
-import edu.etc.by.kickstart.observer.Supervised;
-import edu.etc.by.kickstart.observer.Watcher;
-
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
-public class Cube implements Supervised, Serializable {
+public class Cube implements Serializable {
 
-    private static final long serialVersionUID = -7162632042163620279L;
-    transient private List<Watcher> listeners = new ArrayList<>();
+    private static final long serialVersionUID = 5661641435474626181L;
     private Square topSquare;
     private Square botSquare;
     private int id;
+    private CubeData cubeDataLink;
 
     public Cube(int id, Square topSquare, Square botSquare) {
         this.id = id;
@@ -21,34 +16,21 @@ public class Cube implements Supervised, Serializable {
         this.botSquare = botSquare;
     }
 
-    @Override
-    public void subscribe(Watcher watcher) {
-        listeners.add(watcher);
-    }
-
-    @Override
-    public void unsubscribe(Watcher watcher) {
-        listeners.remove(watcher);
-    }
-
-    @Override
-    public void notifySubscribers() {
-        for (Watcher watcher : listeners) {
-            watcher.update();
-        }
-    }
-
     public int getId() {
         return id;
+    }
+
+    public CubeData getCubeDataLink() {
+        return cubeDataLink;
+    }
+
+    public void setCubeDataLink(CubeData cubeDataLink) {
+        this.cubeDataLink = cubeDataLink;
     }
 
     //TODO: Do we need it?
     public void setId(int id) {
         this.id = id;
-    }
-
-    public CubeData getCubeData() {
-        return (CubeData) listeners.get(0);
     }
 
     public Square getTopSquare() {
@@ -57,7 +39,6 @@ public class Cube implements Supervised, Serializable {
 
     public void setTopSquare(Square topSquare) {
         this.topSquare = topSquare;
-        notifySubscribers();
     }
 
     public Square getBotSquare() {
@@ -66,22 +47,6 @@ public class Cube implements Supervised, Serializable {
 
     public void setBotSquare(Square botSquare) {
         this.botSquare = botSquare;
-        notifySubscribers();
-    }
-
-    //TODO: Do we have another way to access CubeData?
-    public double getSurfaceArea() {
-        if (listeners.size() > 0) {
-            return ((CubeData) listeners.get(0)).getSurfaceArea();
-        }
-        return 0.0;
-    }
-
-    public double getVolume() {
-        if (listeners.size() > 0) {
-            return ((CubeData) listeners.get(0)).getVolume();
-        }
-        return 0.0;
     }
 
     @Override

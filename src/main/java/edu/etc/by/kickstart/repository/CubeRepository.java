@@ -1,6 +1,10 @@
 package edu.etc.by.kickstart.repository;
 
+import edu.etc.by.kickstart.comparator.CubeIdComparator;
 import edu.etc.by.kickstart.entity.Cube;
+import edu.etc.by.kickstart.entity.CubeData;
+import edu.etc.by.kickstart.observer.Supervised;
+import edu.etc.by.kickstart.observer.Watcher;
 import edu.etc.by.kickstart.specification.CubeAreaInRangeSpecification;
 import edu.etc.by.kickstart.specification.CubeIdSpecification;
 import edu.etc.by.kickstart.specification.CubeVolumeInRangeSpecification;
@@ -11,11 +15,13 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class CubeRepository implements FigureRepository<Cube> {
+public class CubeRepository implements FigureRepository<Cube>, Supervised {
 
+    private static final CubeIdComparator DEFAULT_COMPARATOR = new CubeIdComparator();
     private static final int ID_NOT_FOUND = -1;
     private static CubeRepository instance;
-    private static List<Cube> items;
+    private List<Cube> items;
+    private List<Watcher> watchers = new ArrayList<>();
 
     private CubeRepository() {
         items = new ArrayList<>();
@@ -28,19 +34,21 @@ public class CubeRepository implements FigureRepository<Cube> {
         return instance;
     }
 
+    public List<Cube> getAll() {
+        return items;
+    }
+
     @Override
     public void add(Cube item) {
-        CubeStorage.getInstance().add(item.getCubeData());
         items.add(item);
     }
 
     @Override
     public void add(Iterable<Cube> cubeIterable) {
-        CubeStorage storage = CubeStorage.getInstance();
         for (Cube currentCube : cubeIterable) {
-            storage.add(currentCube.getCubeData());
             items.add(currentCube);
         }
+        notifySubscribers();
     }
 
     @Override
@@ -52,79 +60,25 @@ public class CubeRepository implements FigureRepository<Cube> {
             items.remove(searchingId);
             items.add(item);
         }
+        notifySubscribers();
     }
 
     @Override
     public void remove(Cube item) {
         items.remove(item);
-        CubeStorage.getInstance().remove(item.getCubeData());
+        notifySubscribers();
     }
 
     @Override
     public void remove(Specification specification) {
-        //TODO: is it a stable code?
-        CubeStorage storage = CubeStorage.getInstance();
         if (isCubeIdSpec(specification)) {
-
-            CubeIdSpecification idSpecification;
-            idSpecification = (CubeIdSpecification) specification;
-
-            int i = 0;
-            while (i < items.size()) {
-
-                Cube currentCube = items.get(i);
-
-                if (idSpecification.haveEqualId(currentCube.getId())) {
-                    items.remove(i);
-                    storage.remove(currentCube.getCubeData());
-                    i--;
-                }
-
-                i++;
-            }
+            removeByIdSpec((CubeIdSpecification) specification);
         } else if (isCubeAreaInRangeSpec(specification)) {
-
-            CubeAreaInRangeSpecification areaInRangeSpecification;
-            areaInRangeSpecification = (CubeAreaInRangeSpecification) specification;
-
-            int i = 0;
-            while (i < items.size()) {
-
-                Cube currentCube = items.get(i);
-                i++;
-
-                if (areaInRangeSpecification.isInRange(currentCube.getSurfaceArea())) {
-                    items.remove(currentCube);
-                    storage.remove(currentCube.getCubeData());
-                    i--;
-                }
-
-            }
-
+            removeByAreaSpec((CubeAreaInRangeSpecification) specification);
         } else if (isCubeVolumeInRangeSpec(specification)) {
-
-            CubeVolumeInRangeSpecification volumeInRangeSpecification;
-            volumeInRangeSpecification = (CubeVolumeInRangeSpecification) specification;
-
-            int i = 0;
-            while (i < items.size()) {
-
-                Cube currentCube = items.get(i);
-
-                if (volumeInRangeSpecification.isInRange(currentCube.getSurfaceArea())) {
-                    items.remove(currentCube);
-                    storage.remove(currentCube.getCubeData());
-                    i--;
-                }
-
-                i++;
-            }
-
+            removeByVolume((CubeVolumeInRangeSpecification) specification);
         }
-    }
-
-    private boolean isCubeIdSpec(Specification specification) {
-        return specification.getClass().equals(CubeIdSpecification.class);
+        notifySubscribers();
     }
 
 
@@ -161,8 +115,9 @@ public class CubeRepository implements FigureRepository<Cube> {
             int i = 0;
             while (i < items.size()) {
                 Cube currentCube = items.get(i);
+                CubeData data = CubeStorage.getInstance().getItemById(currentCube.getId());
 
-                if (areaInRangeSpecification.isInRange(currentCube.getSurfaceArea())) {
+                if (areaInRangeSpecification.isInRange(data.getSurfaceArea())) {
                     returningCubeList.add(currentCube);
                 }
 
@@ -177,8 +132,9 @@ public class CubeRepository implements FigureRepository<Cube> {
             int i = 0;
             while (i < items.size()) {
                 Cube currentCube = items.get(i);
+                CubeData data = CubeStorage.getInstance().getItemById(currentCube.getId());
 
-                if (volumeInRangeSpecification.isInRange(currentCube.getVolume())) {
+                if (volumeInRangeSpecification.isInRange(data.getVolume())) {
                     returningCubeList.add(currentCube);
                 }
                 i++;
@@ -188,12 +144,22 @@ public class CubeRepository implements FigureRepository<Cube> {
         return returningCubeList;
     }
 
-    private boolean isCubeAreaInRangeSpec(Specification specification) {
-        return specification.getClass().equals(CubeAreaInRangeSpecification.class);
+    @Override
+    public void subscribe(Watcher watcher) {
+        watchers.add(watcher);
     }
 
-    private boolean isCubeVolumeInRangeSpec(Specification specification) {
-        return specification.getClass().equals(CubeVolumeInRangeSpecification.class);
+    @Override
+    public void unsubscribe(Watcher watcher) {
+        watchers.remove(watcher);
+    }
+
+    @Override
+    public void notifySubscribers() {
+        this.sort(DEFAULT_COMPARATOR);
+        for (Watcher watcher : watchers) {
+            watcher.update(items);
+        }
     }
 
     private int findIndexOfCubeById(int id) {
@@ -206,5 +172,73 @@ public class CubeRepository implements FigureRepository<Cube> {
         }
 
         return searchingId;
+    }
+
+    private void removeByVolume(CubeVolumeInRangeSpecification specification) {
+        CubeVolumeInRangeSpecification volumeInRangeSpecification;
+        volumeInRangeSpecification = specification;
+
+        int i = 0;
+        while (i < items.size()) {
+
+            Cube currentCube = items.get(i);
+            CubeData data = CubeStorage.getInstance().getItemById(currentCube.getId());
+
+            if (volumeInRangeSpecification.isInRange(data.getVolume())) {
+                items.remove(currentCube);
+                i--;
+            }
+
+            i++;
+        }
+    }
+
+    private void removeByAreaSpec(CubeAreaInRangeSpecification specification) {
+        CubeAreaInRangeSpecification areaInRangeSpecification;
+        areaInRangeSpecification = specification;
+
+        int i = 0;
+        while (i < items.size()) {
+
+            Cube currentCube = items.get(i);
+            CubeData data = CubeStorage.getInstance().getItemById(currentCube.getId());
+            i++;
+
+            if (areaInRangeSpecification.isInRange(data.getSurfaceArea())) {
+                items.remove(currentCube);
+                i--;
+            }
+
+        }
+    }
+
+    private void removeByIdSpec(CubeIdSpecification specification) {
+        CubeIdSpecification idSpecification;
+        idSpecification = specification;
+
+        int i = 0;
+        while (i < items.size()) {
+
+            Cube currentCube = items.get(i);
+
+            if (idSpecification.haveEqualId(currentCube.getId())) {
+                items.remove(i);
+                i--;
+            }
+
+            i++;
+        }
+    }
+
+    private boolean isCubeIdSpec(Specification specification) {
+        return specification.getClass().equals(CubeIdSpecification.class);
+    }
+
+    private boolean isCubeAreaInRangeSpec(Specification specification) {
+        return specification.getClass().equals(CubeAreaInRangeSpecification.class);
+    }
+
+    private boolean isCubeVolumeInRangeSpec(Specification specification) {
+        return specification.getClass().equals(CubeVolumeInRangeSpecification.class);
     }
 }

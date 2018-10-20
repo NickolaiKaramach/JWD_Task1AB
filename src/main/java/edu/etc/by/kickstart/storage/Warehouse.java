@@ -9,5 +9,7 @@ public interface Warehouse<FigureType> {
 
     void remove(FigureType item);
 
+    FigureType getItemById(int id);
+
     List<FigureType> getAll();
 }

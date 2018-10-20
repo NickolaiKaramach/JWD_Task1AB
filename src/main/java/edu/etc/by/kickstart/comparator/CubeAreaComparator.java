@@ -10,12 +10,9 @@ public class CubeAreaComparator implements Comparator<Cube> {
 
     @Override
     public int compare(Cube a, Cube b) {
-        if ((a == null) || (b == null)) {
-            throw new NullPointerException();
-        }
 
-        double firstCubeArea = a.getSurfaceArea();
-        double secondCubeArea = b.getSurfaceArea();
+        double firstCubeArea = a.getCubeDataLink().getSurfaceArea();
+        double secondCubeArea = b.getCubeDataLink().getSurfaceArea();
 
         if (firstCubeArea == secondCubeArea) {
             return 0;
