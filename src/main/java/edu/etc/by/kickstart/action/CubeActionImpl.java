@@ -15,7 +15,6 @@ public class CubeActionImpl implements CubeAction {
         Square validSquare;
         Point rightBotCorner;
         Point rightTopCorner;
-
         validSquare = validCube.getBotSquare();
         rightBotCorner = validSquare.getRightBotCorner();
         rightTopCorner = validSquare.getRightTopCorner();

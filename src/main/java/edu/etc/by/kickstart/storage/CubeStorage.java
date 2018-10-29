@@ -66,6 +66,7 @@ public class CubeStorage implements Warehouse<CubeData>, Watcher, Supervised {
     public void update(Object observable) {
         items.sort(DEFAULT_COMPARATOR);
 
+
         ArrayList<Cube> cubes = ((ArrayList<Cube>) observable);
 
         if (cubes.size() > items.size()) {
